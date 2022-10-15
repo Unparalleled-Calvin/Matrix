@@ -33,6 +33,13 @@ void RandomFill(struct drand48_data* buf_p, double* d, size_t count)
 void student_gemm(int m, int n, int k, const double* A, const double* B, double* C, double alpha, double beta, int lda, int ldb, int ldc)
 {
     /* TODO */
+    double *A_, *B_, *C_;
+    LoopRowMajorOrderingPre(m, n, k, A, B, C, &A_, &B_, &C_);
+    LoopRowMajorOrderingPro(m, n, k, A_, B_, C_, alpha, beta, k, n, n);
+    LoopRowMajorOrderingPost(m, n, C, C_);
+    delete[] A_;
+    delete[] B_;
+    delete[] C_;
 }
 
 void naive_gemm(int m, int n, int k, const double* A, const double* B, double* C, double alpha, double beta, int lda, int ldb, int ldc)

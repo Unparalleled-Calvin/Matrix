@@ -1,35 +1,29 @@
 #include "func.h"
 
-void ColMajor2RowMajor(int M, int N, double* mat) {
+double* ColMajor2RowMajor(int M, int N, const double* mat) {
 	double* mat_ = new double[M * N];
 	for (int i = 0;i < M;i++) {
 		for (int j = 0;j < N;j++) {
 			mat_[i * N + j] = mat[i + j * M];
 		}
 	}
-	for (int i = 0;i < M * N;i++) {
-		mat[i] = mat_[i];
-	}
-	delete[] mat_;
+	return mat_;
 }
 
-void RowMajor2ColMajor(int M, int N, double* mat) {
+double* RowMajor2ColMajor(int M, int N, double* mat) {
 	double* mat_ = new double[M * N];
 	for (int i = 0;i < M;i++) {
 		for (int j = 0;j < N;j++) {
 			mat_[i + j * M] = mat[i * N + j];
 		}
 	}
-	for (int i = 0;i < M * N;i++) {
-		mat[i] = mat_[i];
-	}
-	delete[] mat_;
+	return mat_;
 }
 
 void LoopRowMajorOrderingPre(FUNC_PARAM_PRE) {
-	ColMajor2RowMajor(M, K, A);
-	ColMajor2RowMajor(K, N, B);
-	ColMajor2RowMajor(M, N, C);
+	*pA = ColMajor2RowMajor(M, K, A);
+	*pB = ColMajor2RowMajor(K, N, B);
+	*pC = ColMajor2RowMajor(M, N, C);
 }
 
 void LoopRowMajorOrderingPro(FUNC_PARAM_PRO) { // 三重循环 + 所有元素按行排序
@@ -44,5 +38,7 @@ void LoopRowMajorOrderingPro(FUNC_PARAM_PRO) { // 三重循环 + 所有元素按
 }
 
 void LoopRowMajorOrderingPost(FUNC_PARAM_POST) {
-	RowMajor2ColMajor(M, N, C);
+	double* C__ = RowMajor2ColMajor(M, N, C_);
+	memcpy(C, C__, M * N * sizeof(double));
+	delete[] C__;
 }
