@@ -6,7 +6,7 @@ func.o: func.cpp
 	g++ -c func.cpp
 
 test.o: test.cpp
-	g++ -c test.cpp
+	g++ -c test.cpp -DBLOCK_SIZE=$(if $(BLOCK_SIZE),$(BLOCK_SIZE),4)
 
 debug.o: debug.cpp
 	g++ -c debug.cpp

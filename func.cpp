@@ -87,7 +87,7 @@ void LoopRowMajorBlockingPre(FUNC_PARAM_PRE) {
 
 #define pos(mat, ih, il, jh, jl, ld) (mat)[((ih) + (il)) * (ld) + (jh) + (jl)]
 
-void LoopRowMajorBlockingPro(FUNC_PARAM_PRO) {
+void LoopRowMajorBlockingPro(FUNC_PARAM_PRO) { // 三重循环 + 显式分块
 	for (int ih = 0;ih < M;ih += BLOCK_SIZE) {
 		for (int jh = 0;jh < N;jh += BLOCK_SIZE) {
 			for (int kh = 0;kh < K;kh += BLOCK_SIZE) {
@@ -127,7 +127,7 @@ void LoopRowMajorPackingPre(FUNC_PARAM_PRE) {
 // 仅当MNK均整除BLOCK_SIZE时生效
 #define pos(mat, ih, il, jh, jl, ld) (mat)[(ih) * (ld) + (jh) * (BLOCK_SIZE) + (il) * (BLOCK_SIZE) + (jl)]
 
-void LoopRowMajorPackingPro(FUNC_PARAM_PRO) {
+void LoopRowMajorPackingPro(FUNC_PARAM_PRO) { // 三重循环 + 显式分块 + 小块连续
 	if (M % BLOCK_SIZE || N % BLOCK_SIZE || K % BLOCK_SIZE) {
 		printf("SIZE ERROR!\n");
 		exit(-1);
