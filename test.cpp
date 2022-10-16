@@ -4,6 +4,7 @@
 #include <ctime>
 
 #include "func.h"
+#include "debug.h"
 
 #define MEASURE(__ret_ptr, __func, ...)           \
     ((clock_gettime(CLOCK_MONOTONIC, &start), \
@@ -34,9 +35,9 @@ void student_gemm(int m, int n, int k, const double* A, const double* B, double*
 {
     /* TODO */
     double *A_, *B_, *C_;
-    LoopRowMajorBlockingPre(m, n, k, A, B, C, &A_, &B_, &C_);
-    LoopRowMajorBlockingPro(m, n, k, A_, B_, C_, alpha, beta, k, n, n);
-    LoopRowMajorBlockingPost(m, n, C, C_);
+    LoopRowMajorPackingPre(m, n, k, A, B, C, &A_, &B_, &C_);
+    LoopRowMajorPackingPro(m, n, k, A_, B_, C_, alpha, beta, k, n, n);
+    LoopRowMajorPackingPost(m, n, C, C_);
     delete[] A_;
     delete[] B_;
     delete[] C_;
