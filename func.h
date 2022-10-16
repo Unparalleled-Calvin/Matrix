@@ -10,3 +10,4 @@
 #define FUNC_DECLARE(NAME) void NAME##Pre(FUNC_PARAM_PRE); void NAME##Pro(FUNC_PARAM_PRO); void NAME##Post(FUNC_PARAM_POST);
 
 FUNC_DECLARE(LoopRowMajorOrdering)
+FUNC_DECLARE(LoopRowMajorBlocking)
