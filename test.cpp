@@ -35,9 +35,9 @@ void student_gemm(int m, int n, int k, const double* A, const double* B, double*
 {
     /* TODO */
     double *A_, *B_, *C_;
-    RecursionRowMajorOrderingPre(m, n, k, A, B, C, &A_, &B_, &C_, beta);
-    RecursionRowMajorOrderingPro(m, n, k, A_, B_, C_, alpha, k, n, n);
-    RecursionRowMajorOrderingPost(m, n, C, C_);
+    RecursionRowMajorBlockingPre(m, n, k, A, B, C, &A_, &B_, &C_, beta);
+    RecursionRowMajorBlockingPro(m, n, k, A_, B_, C_, alpha, k, n, n);
+    RecursionRowMajorBlockingPost(m, n, C, C_);
     delete[] A_;
     delete[] B_;
     delete[] C_;
