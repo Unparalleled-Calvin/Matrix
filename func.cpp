@@ -1,5 +1,15 @@
 #include "func.h"
 
+inline int max(int a, int b) {
+	return a > b ? a : b;
+}
+
+void matScale(int M, int N, double* mat, double scale) {
+	for (int i = 0;i < M * N;i++) {
+		mat[i] *= scale;
+	}
+}
+
 double* ColMajor2RowMajor(int M, int N, const double* mat) {
 	double* mat_ = new double[M * N];
 	for (int i = 0;i < M;i++) {
@@ -56,6 +66,7 @@ void LoopRowMajorOrderingPre(FUNC_PARAM_PRE) {
 	*pA = ColMajor2RowMajor(M, K, A);
 	*pB = ColMajor2RowMajor(K, N, B);
 	*pC = ColMajor2RowMajor(M, N, C);
+	matScale(M, N, *pC, beta);
 }
 
 #define pos(mat, i, j, ld) (mat)[(i) * (ld) + (j)]
@@ -63,7 +74,6 @@ void LoopRowMajorOrderingPre(FUNC_PARAM_PRE) {
 void LoopRowMajorOrderingPro(FUNC_PARAM_PRO) { // 三重循环 + 所有元素按行排序
 	for (int i = 0;i < M;i++) {
 		for (int j = 0;j < N;j++) {
-			pos(C, i, j, ldc) *= beta;
 			for (int k = 0;k < K;k++) {
 				pos(C, i, j, ldc) += alpha * pos(A, i, k, lda) * pos(B, k, j, ldb);
 			}
@@ -83,6 +93,7 @@ void LoopRowMajorBlockingPre(FUNC_PARAM_PRE) {
 	*pA = ColMajor2RowMajor(M, K, A);
 	*pB = ColMajor2RowMajor(K, N, B);
 	*pC = ColMajor2RowMajor(M, N, C);
+	matScale(M, N, *pC, beta);
 }
 
 #define pos(mat, ih, il, jh, jl, ld) (mat)[((ih) + (il)) * (ld) + (jh) + (jl)]
@@ -93,7 +104,6 @@ void LoopRowMajorBlockingPro(FUNC_PARAM_PRO) { // 三重循环 + 显式分块
 			for (int kh = 0;kh < K;kh += BLOCK_SIZE) {
 				for (int il = 0;il < BLOCK_SIZE && ih + il < M;il++) {
 					for (int jl = 0;jl < BLOCK_SIZE && jh + jl < N;jl++) {
-						pos(C, ih, il, jh, jl, ldc) *= kh ? 1 : beta; // 控制使beta只算一次
 						for (int kl = 0;kl < BLOCK_SIZE && kh + kl < K;kl++) {
 							pos(C, ih, il, jh, jl, ldc) += alpha * pos(A, ih, il, kh, kl, lda) * pos(B, kh, kl, jh, jl, ldb);
 						}
@@ -122,6 +132,7 @@ void LoopRowMajorPackingPre(FUNC_PARAM_PRE) {
 	delete[] A_;
 	delete[] B_;
 	delete[] C_;
+	matScale(M, N, *pC, beta);
 }
 
 // 仅当MNK均整除BLOCK_SIZE时生效
@@ -137,7 +148,6 @@ void LoopRowMajorPackingPro(FUNC_PARAM_PRO) { // 三重循环 + 显式分块 + �
 			for (int kh = 0;kh < K;kh += BLOCK_SIZE) {
 				for (int il = 0;il < BLOCK_SIZE && ih + il < M;il++) {
 					for (int jl = 0;jl < BLOCK_SIZE && jh + jl < N;jl++) {
-						pos(C, ih, il, jh, jl, ldc) *= kh ? 1 : beta; // 控制使beta只算一次
 						for (int kl = 0;kl < BLOCK_SIZE && kh + kl < K;kl++) {
 							pos(C, ih, il, jh, jl, ldc) += alpha * pos(A, ih, il, kh, kl, lda) * pos(B, kh, kl, jh, jl, ldb);
 						}
