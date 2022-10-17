@@ -243,3 +243,55 @@ void RecursionRowMajorBlockingPost(FUNC_PARAM_POST) {
 	memcpy(C, C__, M * N * sizeof(double));
 	delete[] C__;
 }
+
+// RecursionRowMajorPacking
+
+void RecursionRowMajorPackingPre(FUNC_PARAM_PRE) {
+	double* A_ = ColMajor2RowMajor(M, K, A);
+	double* B_ = ColMajor2RowMajor(K, N, B);
+	double* C_ = ColMajor2RowMajor(M, N, C);
+	*pA = RowMajor2Packing(M, K, A_);
+	*pB = RowMajor2Packing(K, N, B_);
+	*pC = RowMajor2Packing(M, N, C_);
+	delete[] A_;
+	delete[] B_;
+	delete[] C_;
+	matScale(M, N, *pC, beta);
+}
+
+// 仅当MNK均为2幂次时生效
+#define pos(mat, i, j) (mat)[(i) * BLOCK_SIZE + (j)]
+
+void RecursionRowMajorPackingPro(FUNC_PARAM_PRO) { // 递归结构 + 分块 + 块与块间连续
+	int L = max(max(M, N), K);
+	int X = L / 2;
+	if (L <= BLOCK_SIZE) {
+		for (int i = 0;i < M;i++) {
+			for (int j = 0; j < N;j++) {
+				for (int k = 0; k < K;k++) {
+					pos(C, i, j) += alpha * pos(A, i, k) * pos(B, k, j);
+				}
+			}
+		}
+	}
+	else if (L == K) {
+		RecursionRowMajorPackingPro(M, N, X, A, B, C, alpha, lda, ldb, ldc);
+		RecursionRowMajorPackingPro(M, N, X, A + X * BLOCK_SIZE, B + X * ldb, C, alpha, lda, ldb, ldc);
+	}
+	else if (L == M) {
+		RecursionRowMajorPackingPro(X, N, K, A, B, C, alpha, lda, ldb, ldc);
+		RecursionRowMajorPackingPro(X, N, K, A + X * lda, B, C + X * ldc, alpha, lda, ldb, ldc);
+	}
+	else if (L == N) {
+		RecursionRowMajorPackingPro(M, X, K, A, B, C, alpha, lda, ldb, ldc);
+		RecursionRowMajorPackingPro(M, X, K, A, B + X * BLOCK_SIZE, C + X * BLOCK_SIZE, alpha, lda, ldb, ldc);
+	}
+}
+
+void RecursionRowMajorPackingPost(FUNC_PARAM_POST) {
+	double* C__ = Packing2RowMajor(M, N, C_);
+	double* C___ = RowMajor2ColMajor(M, N, C__);
+	memcpy(C, C___, M * N * sizeof(double));
+	delete[] C__;
+	delete[] C___;
+}
