@@ -16,3 +16,4 @@
 FUNC_DECLARE(LoopRowMajorOrdering)
 FUNC_DECLARE(LoopRowMajorBlocking)
 FUNC_DECLARE(LoopRowMajorPacking)
+FUNC_DECLARE(RecursionRowMajorOrdering)

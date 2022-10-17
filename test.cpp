@@ -35,9 +35,9 @@ void student_gemm(int m, int n, int k, const double* A, const double* B, double*
 {
     /* TODO */
     double *A_, *B_, *C_;
-    LoopRowMajorPackingPre(m, n, k, A, B, C, &A_, &B_, &C_, beta);
-    LoopRowMajorPackingPro(m, n, k, A_, B_, C_, alpha, k, n, n);
-    LoopRowMajorPackingPost(m, n, C, C_);
+    RecursionRowMajorOrderingPre(m, n, k, A, B, C, &A_, &B_, &C_, beta);
+    RecursionRowMajorOrderingPro(m, n, k, A_, B_, C_, alpha, k, n, n);
+    RecursionRowMajorOrderingPost(m, n, C, C_);
     delete[] A_;
     delete[] B_;
     delete[] C_;
@@ -138,5 +138,11 @@ int main(int argc, const char* argv[])
     printf("input: %d x %d x %d\n", m, n, k);
     fflush(stdout);
 
-    mm_test(m, n, k);
+    if (isPowerOf2(m) && isPowerOf2(n) && isPowerOf2(k)) {
+        mm_test(m, n, k);
+    }
+    else {
+        printf("error!\neach side of the matrix should be a power of 2.\n");
+    }
+
 }

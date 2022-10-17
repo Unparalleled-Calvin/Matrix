@@ -139,10 +139,6 @@ void LoopRowMajorPackingPre(FUNC_PARAM_PRE) {
 #define pos(mat, ih, il, jh, jl, ld) (mat)[(ih) * (ld) + (jh) * (BLOCK_SIZE) + (il) * (BLOCK_SIZE) + (jl)]
 
 void LoopRowMajorPackingPro(FUNC_PARAM_PRO) { // 三重循环 + 显式分块 + 小块连续
-	if (M % BLOCK_SIZE || N % BLOCK_SIZE || K % BLOCK_SIZE) {
-		printf("SIZE ERROR!\n");
-		exit(-1);
-	}
 	for (int ih = 0;ih < M;ih += BLOCK_SIZE) {
 		for (int jh = 0;jh < N;jh += BLOCK_SIZE) {
 			for (int kh = 0;kh < K;kh += BLOCK_SIZE) {
@@ -164,4 +160,41 @@ void LoopRowMajorPackingPost(FUNC_PARAM_POST) {
 	memcpy(C, C___, M * N * sizeof(double));
 	delete[] C__;
 	delete[] C___;
+}
+
+// RecursionRowMajorOrdering
+
+void RecursionRowMajorOrderingPre(FUNC_PARAM_PRE) {
+	*pA = ColMajor2RowMajor(M, K, A);
+	*pB = ColMajor2RowMajor(K, N, B);
+	*pC = ColMajor2RowMajor(M, N, C);
+	matScale(M, N, *pC, beta);
+}
+
+#define pos(mat, i, j, ld) (mat)[(i) * (ld) + (j)]
+
+void RecursionRowMajorOrderingPro(FUNC_PARAM_PRO) { // 递归结构 + 递归到单个元素
+	int L = max(max(M, N), K);
+	int X = L / 2;
+	if (L == 1) {
+		pos(C, 0, 0, ldc) += alpha * pos(A, 0, 0, lda) * pos(B, 0, 0, ldb);
+	}
+	else if (L == K) {
+		RecursionRowMajorOrderingPro(M, N, X, A, B, C, alpha, lda, ldb, ldc);
+		RecursionRowMajorOrderingPro(M, N, X, A + X, B + X * ldb, C, alpha, lda, ldb, ldc);
+	}
+	else if (L == M) {
+		RecursionRowMajorOrderingPro(X, N, K, A, B, C, alpha, lda, ldb, ldc);
+		RecursionRowMajorOrderingPro(X, N, K, A + X * lda, B, C + X * ldc, alpha, lda, ldb, ldc);
+	}
+	else if (L == N) {
+		RecursionRowMajorOrderingPro(M, X, K, A, B, C, alpha, lda, ldb, ldc);
+		RecursionRowMajorOrderingPro(M, X, K, A, B + X, C + X, alpha, lda, ldb, ldc);
+	}
+}
+
+void RecursionRowMajorOrderingPost(FUNC_PARAM_POST) {
+	double* C__ = RowMajor2ColMajor(M, N, C_);
+	memcpy(C, C__, M * N * sizeof(double));
+	delete[] C__;
 }
