@@ -60,6 +60,56 @@ double* Packing2RowMajor(int M, int N, double* mat) {
 	return mat_;
 }
 
+double* RowMajor2Zmorton(int M, int N, int ld, double* mat, double* mat_, int base) {
+	if (mat_ == nullptr) {
+		mat_ = new double[M * N];
+	}
+	int L = max(M, N);
+	int X = L / 2;
+	if (L <= base) {
+		int pos = 0;
+		for (int i = 0;i < base; i++) {
+			for (int j = 0; j < base;j++) {
+				mat_[pos++] = mat[i * ld + j];
+			}
+		}
+	}
+	else if(L == M) {
+		RowMajor2Zmorton(X, N, ld, mat, mat_, base);
+		RowMajor2Zmorton(X, N, ld, mat + X * ld, mat_ + X * N, base);
+	}
+	else if (L == N) {
+		RowMajor2Zmorton(M, X, ld, mat, mat_, base);
+		RowMajor2Zmorton(M, X, ld, mat + X, mat_ + M * X, base);
+	}
+	return mat_;
+}
+
+double* Zmorton2RowMajor(int M, int N, int ld, double* mat, double* mat_, int base) {
+	if (mat_ == nullptr) {
+		mat_ = new double[M * N];
+	}
+	int L = max(M, N);
+	int X = L / 2;
+	if (L <= base) {
+		int pos = 0;
+		for (int i = 0;i < base;i++) {
+			for (int j = 0;j < base;j++) {
+				mat_[i * ld + j] = mat[pos++];
+			}
+		}
+	}
+	else if (L == M) {
+		Zmorton2RowMajor(X, N, ld, mat, mat_, base);
+		Zmorton2RowMajor(X, N, ld, mat + X * N, mat_ + X * ld, base);
+	}
+	else if (L == N) {
+		Zmorton2RowMajor(M, X, ld, mat, mat_, base);
+		Zmorton2RowMajor(M, X, ld, mat + M * X, mat_ + X, base);
+	}
+	return mat_;
+}
+
 // LoopRowMajorOrdering
 
 void LoopRowMajorOrderingPre(FUNC_PARAM_PRE) {
@@ -180,13 +230,13 @@ void RecursionRowMajorOrderingPro(FUNC_PARAM_PRO) { // 递归结构 + 递归到�
 	if (L == 1) {
 		pos(C, 0, 0, ldc) += alpha * pos(A, 0, 0, lda) * pos(B, 0, 0, ldb);
 	}
-	else if (L == K) {
-		RecursionRowMajorOrderingPro(M, N, X, A, B, C, alpha, lda, ldb, ldc);
-		RecursionRowMajorOrderingPro(M, N, X, A + X, B + X * ldb, C, alpha, lda, ldb, ldc);
-	}
 	else if (L == M) {
 		RecursionRowMajorOrderingPro(X, N, K, A, B, C, alpha, lda, ldb, ldc);
 		RecursionRowMajorOrderingPro(X, N, K, A + X * lda, B, C + X * ldc, alpha, lda, ldb, ldc);
+	}
+	else if (L == K) {
+		RecursionRowMajorOrderingPro(M, N, X, A, B, C, alpha, lda, ldb, ldc);
+		RecursionRowMajorOrderingPro(M, N, X, A + X, B + X * ldb, C, alpha, lda, ldb, ldc);
 	}
 	else if (L == N) {
 		RecursionRowMajorOrderingPro(M, X, K, A, B, C, alpha, lda, ldb, ldc);
@@ -224,13 +274,13 @@ void RecursionRowMajorBlockingPro(FUNC_PARAM_PRO) { // 递归结构 + 分块
 			}
 		}
 	}
-	else if (L == K) {
-		RecursionRowMajorBlockingPro(M, N, X, A, B, C, alpha, lda, ldb, ldc);
-		RecursionRowMajorBlockingPro(M, N, X, A + X, B + X * ldb, C, alpha, lda, ldb, ldc);
-	}
 	else if (L == M) {
 		RecursionRowMajorBlockingPro(X, N, K, A, B, C, alpha, lda, ldb, ldc);
 		RecursionRowMajorBlockingPro(X, N, K, A + X * lda, B, C + X * ldc, alpha, lda, ldb, ldc);
+	}
+	else if (L == K) {
+		RecursionRowMajorBlockingPro(M, N, X, A, B, C, alpha, lda, ldb, ldc);
+		RecursionRowMajorBlockingPro(M, N, X, A + X, B + X * ldb, C, alpha, lda, ldb, ldc);
 	}
 	else if (L == N) {
 		RecursionRowMajorBlockingPro(M, X, K, A, B, C, alpha, lda, ldb, ldc);
@@ -274,13 +324,13 @@ void RecursionRowMajorPackingPro(FUNC_PARAM_PRO) { // 递归结构 + 分块 + �
 			}
 		}
 	}
-	else if (L == K) {
-		RecursionRowMajorPackingPro(M, N, X, A, B, C, alpha, lda, ldb, ldc);
-		RecursionRowMajorPackingPro(M, N, X, A + X * BLOCK_SIZE, B + X * ldb, C, alpha, lda, ldb, ldc);
-	}
 	else if (L == M) {
 		RecursionRowMajorPackingPro(X, N, K, A, B, C, alpha, lda, ldb, ldc);
 		RecursionRowMajorPackingPro(X, N, K, A + X * lda, B, C + X * ldc, alpha, lda, ldb, ldc);
+	}
+	else if (L == K) {
+		RecursionRowMajorPackingPro(M, N, X, A, B, C, alpha, lda, ldb, ldc);
+		RecursionRowMajorPackingPro(M, N, X, A + X * BLOCK_SIZE, B + X * ldb, C, alpha, lda, ldb, ldc);
 	}
 	else if (L == N) {
 		RecursionRowMajorPackingPro(M, X, K, A, B, C, alpha, lda, ldb, ldc);
@@ -290,6 +340,49 @@ void RecursionRowMajorPackingPro(FUNC_PARAM_PRO) { // 递归结构 + 分块 + �
 
 void RecursionRowMajorPackingPost(FUNC_PARAM_POST) {
 	double* C__ = Packing2RowMajor(M, N, C_);
+	double* C___ = RowMajor2ColMajor(M, N, C__);
+	memcpy(C, C___, M * N * sizeof(double));
+	delete[] C__;
+	delete[] C___;
+}
+
+// RecursionZmortonOrdering
+
+void RecursionZmortonOrderingPre(FUNC_PARAM_PRE) {
+	double* A_ = ColMajor2RowMajor(M, K, A);
+	double* B_ = ColMajor2RowMajor(K, N, B);
+	double* C_ = ColMajor2RowMajor(M, N, C);
+	*pA = RowMajor2Zmorton(M, K, K, A_, nullptr, 1);
+	*pB = RowMajor2Zmorton(K, N, N, B_, nullptr, 1);
+	*pC = RowMajor2Zmorton(M, N, N, C_, nullptr, 1);
+	delete[] A_;
+	delete[] B_;
+	delete[] C_;
+	matScale(M, N, *pC, beta);
+}
+
+void RecursionZmortonOrderingPro(FUNC_PARAM_PRO) { // 递归结构 + 递归到单个元素 + 所有元素递归序排列
+	int L = max(max(M, N), K);
+	int X = L / 2;
+	if (L <= 1) {
+		C[0] += alpha * A[0] * B[0];
+	}
+	else if (L == M) {
+		RecursionZmortonOrderingPro(X, N, K, A, B, C, alpha, lda, ldb, ldc);
+		RecursionZmortonOrderingPro(X, N, K, A + X * K, B, C + X * N, alpha, lda, ldb, ldc);
+	}
+	else if (L == K) {
+		RecursionZmortonOrderingPro(M, N, X, A, B, C, alpha, lda, ldb, ldc);
+		RecursionZmortonOrderingPro(M, N, X, A + M * X, B + X * N, C, alpha, lda, ldb, ldc);
+	}
+	else if (L == N) {
+		RecursionZmortonOrderingPro(M, X, K, A, B, C, alpha, lda, ldb, ldc);
+		RecursionZmortonOrderingPro(M, X, K, A, B + K * X, C + M * X, alpha, lda, ldb, ldc);
+	}
+}
+
+void RecursionZmortonOrderingPost(FUNC_PARAM_POST) {
+	double* C__ = Zmorton2RowMajor(M, N, N, C_, nullptr, 1);
 	double* C___ = RowMajor2ColMajor(M, N, C__);
 	memcpy(C, C___, M * N * sizeof(double));
 	delete[] C__;
