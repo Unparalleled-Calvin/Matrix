@@ -35,9 +35,9 @@ void student_gemm(int m, int n, int k, const double* A, const double* B, double*
 {
     /* TODO */
     double *A_, *B_, *C_;
-    RecursionZmortonOrderingPre(m, n, k, A, B, C, &A_, &B_, &C_, beta);
-    RecursionZmortonOrderingPro(m, n, k, A_, B_, C_, alpha, k, n, n);
-    RecursionZmortonOrderingPost(m, n, C, C_);
+    RecursionZmortonPackingPre(m, n, k, A, B, C, &A_, &B_, &C_, beta);
+    RecursionZmortonPackingPro(m, n, k, A_, B_, C_, alpha, k, n, n);
+    RecursionZmortonPackingPost(m, n, C, C_);
     delete[] A_;
     delete[] B_;
     delete[] C_;

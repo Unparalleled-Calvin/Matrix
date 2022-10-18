@@ -388,3 +388,55 @@ void RecursionZmortonOrderingPost(FUNC_PARAM_POST) {
 	delete[] C__;
 	delete[] C___;
 }
+
+// RecursionZmortonPacking
+
+void RecursionZmortonPackingPre(FUNC_PARAM_PRE) {
+	double* A_ = ColMajor2RowMajor(M, K, A);
+	double* B_ = ColMajor2RowMajor(K, N, B);
+	double* C_ = ColMajor2RowMajor(M, N, C);
+	*pA = RowMajor2Zmorton(M, K, K, A_, nullptr, BLOCK_SIZE);
+	*pB = RowMajor2Zmorton(K, N, N, B_, nullptr, BLOCK_SIZE);
+	*pC = RowMajor2Zmorton(M, N, N, C_, nullptr, BLOCK_SIZE);
+	delete[] A_;
+	delete[] B_;
+	delete[] C_;
+	matScale(M, N, *pC, beta);
+}
+
+// 仅当MNK均为2幂次时生效
+#define pos(mat, i, j, ld) (mat)[(i) * (ld) + (j)]
+
+void RecursionZmortonPackingPro(FUNC_PARAM_PRO) { // 递归结构 + 递归到单个元素 + 所有元素递归序排列
+	int L = max(max(M, N), K);
+	int X = L / 2;
+	if (L <= BLOCK_SIZE) {
+		for (int i = 0;i < BLOCK_SIZE;i++) {
+			for (int j = 0;j < BLOCK_SIZE;j++) {
+				for (int k = 0;k < BLOCK_SIZE;k++) {
+					pos(C, i, j, BLOCK_SIZE) += alpha * pos(A, i, k, BLOCK_SIZE) * pos(B, k, j, BLOCK_SIZE);
+				}
+			}
+		}
+	}
+	else if (L == M) {
+		RecursionZmortonPackingPro(X, N, K, A, B, C, alpha, lda, ldb, ldc);
+		RecursionZmortonPackingPro(X, N, K, A + X * K, B, C + X * N, alpha, lda, ldb, ldc);
+	}
+	else if (L == K) {
+		RecursionZmortonPackingPro(M, N, X, A, B, C, alpha, lda, ldb, ldc);
+		RecursionZmortonPackingPro(M, N, X, A + M * X, B + X * N, C, alpha, lda, ldb, ldc);
+	}
+	else if (L == N) {
+		RecursionZmortonPackingPro(M, X, K, A, B, C, alpha, lda, ldb, ldc);
+		RecursionZmortonPackingPro(M, X, K, A, B + K * X, C + M * X, alpha, lda, ldb, ldc);
+	}
+}
+
+void RecursionZmortonPackingPost(FUNC_PARAM_POST) {
+	double* C__ = Zmorton2RowMajor(M, N, N, C_, nullptr, BLOCK_SIZE);
+	double* C___ = RowMajor2ColMajor(M, N, C__);
+	memcpy(C, C___, M * N * sizeof(double));
+	delete[] C__;
+	delete[] C___;
+}
