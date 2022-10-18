@@ -4,7 +4,7 @@
 #include <cstring>
 
 #ifndef BLOCK_SIZE
-#define BLOCK_SIZE 16
+#define BLOCK_SIZE 1
 #endif // !BLOCK_SIZE
 
 #define FUNC_PARAM_PRE int M, int N, int K, const double* A, const double* B, const double* C, double** pA, double **pB, double** pC, double beta

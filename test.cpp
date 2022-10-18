@@ -138,11 +138,16 @@ int main(int argc, const char* argv[])
     printf("input: %d x %d x %d\n", m, n, k);
     fflush(stdout);
 
-    if (isPowerOf2(m) && isPowerOf2(n) && isPowerOf2(k)) {
-        mm_test(m, n, k);
-    }
-    else {
+    if (!isPowerOf2(m) || !isPowerOf2(n) || !isPowerOf2(k)) {
         printf("error!\neach side of the matrix should be a power of 2.\n");
+        return -1;
+    }
+    if (BLOCK_SIZE > m || BLOCK_SIZE > n || BLOCK_SIZE > k) {
+        printf("error!\neach side of the matrix should be larger than the block size.\n");
+        return -1;
     }
 
+    mm_test(m, n, k);
+
+    return 0;
 }
