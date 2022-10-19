@@ -182,9 +182,9 @@ int main(int argc, const char* argv[])
     int n = atoi(argv[2]);
     int k = atoi(argv[3]);
     BLOCK_SIZE = argc == 6 ? atoi(argv[5]) : 1;
-    func_no = argc == 5 ? atoi(argv[4]) : 0;
+    func_no = argc >= 5 ? atoi(argv[4]) : 0;
 
-    printf("input: %d x %d x %d\nmethod: %s\nblock size:%d\n", m, n, k, func_names[func_no], BLOCK_SIZE);
+    printf("input: %d x %d x %d\nmethod: %s\nblock size: %d\n", m, n, k, func_names[func_no], BLOCK_SIZE);
     fflush(stdout);
 
     if (!isPowerOf2(m) || !isPowerOf2(n) || !isPowerOf2(k)) {
