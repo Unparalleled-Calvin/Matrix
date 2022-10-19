@@ -1,2 +1,4 @@
 test
 result.txt
+log.txt
+# nohup python3 test.py 1>log.txt 2>&1 </dev/null &
