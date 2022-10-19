@@ -3,10 +3,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#ifndef BLOCK_SIZE
-#define BLOCK_SIZE 1
-#endif // !BLOCK_SIZE
-
 #define FUNC_PARAM_PRE int M, int N, int K, const double* A, const double* B, const double* C, double** pA, double **pB, double** pC, double beta
 #define FUNC_PARAM_PRO int M, int N, int K, const double* A, const double* B, double* C, double alpha, int lda, int ldb, int ldc
 #define FUNC_PARAM_POST int M, int N, double* C, double *C_
@@ -21,3 +17,5 @@ FUNC_DECLARE(RecursionRowMajorBlocking)
 FUNC_DECLARE(RecursionRowMajorPacking)
 FUNC_DECLARE(RecursionZmortonOrdering)
 FUNC_DECLARE(RecursionZmortonPacking)
+
+extern int BLOCK_SIZE;

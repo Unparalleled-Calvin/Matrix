@@ -3,10 +3,10 @@ test: func.o test.o debug.o
 	rm -f *.o
 
 func.o: func.cpp
-	g++ -c func.cpp -DBLOCK_SIZE=$(if $(BLOCK_SIZE),$(BLOCK_SIZE),1)
+	g++ -c func.cpp
 
 test.o: test.cpp
-	g++ -c test.cpp -DBLOCK_SIZE=$(if $(BLOCK_SIZE),$(BLOCK_SIZE),1)
+	g++ -c test.cpp
 
 debug.o: debug.cpp
 	g++ -c debug.cpp

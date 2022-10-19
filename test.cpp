@@ -22,6 +22,52 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define ABS(x) (((x) >= 0.0) ? (x) : -(x))
 
+int BLOCK_SIZE;
+int func_no;
+const char* func_names[8] = {
+    "LoopRowMajorOrdering",
+    "LoopRowMajorBlocking",
+    "LoopRowMajorPacking",
+    "RecursionRowMajorOrdering",
+    "RecursionRowMajorBlocking",
+    "RecursionRowMajorPacking",
+    "RecursionZmortonOrdering",
+    "RecursionZmortonPacking"
+};
+
+void (*func_pres[8])(FUNC_PARAM_PRE) = {
+    &LoopRowMajorOrderingPre,
+    &LoopRowMajorBlockingPre,
+    &LoopRowMajorPackingPre,
+    &RecursionRowMajorOrderingPre,
+    &RecursionRowMajorBlockingPre,
+    &RecursionRowMajorPackingPre,
+    &RecursionZmortonOrderingPre,
+    &RecursionZmortonPackingPre
+};
+
+void (*func_pros[8])(FUNC_PARAM_PRO) = {
+    &LoopRowMajorOrderingPro,
+    &LoopRowMajorBlockingPro,
+    &LoopRowMajorPackingPro,
+    &RecursionRowMajorOrderingPro,
+    &RecursionRowMajorBlockingPro,
+    &RecursionRowMajorPackingPro,
+    &RecursionZmortonOrderingPro,
+    &RecursionZmortonPackingPro
+};
+
+void (*func_posts[8])(FUNC_PARAM_POST) = {
+    &LoopRowMajorOrderingPost,
+    &LoopRowMajorBlockingPost,
+    &LoopRowMajorPackingPost,
+    &RecursionRowMajorOrderingPost,
+    &RecursionRowMajorBlockingPost,
+    &RecursionRowMajorPackingPost,
+    &RecursionZmortonOrderingPost,
+    &RecursionZmortonPackingPost
+};
+
 void RandomFill(struct drand48_data* buf_p, double* d, size_t count)
 {
     for (size_t i = 0; i < count; ++i)
@@ -31,16 +77,18 @@ void RandomFill(struct drand48_data* buf_p, double* d, size_t count)
     }
 }
 
-void student_gemm(int m, int n, int k, const double* A, const double* B, double* C, double alpha, double beta, int lda, int ldb, int ldc)
+double student_gemm(int m, int n, int k, const double* A, const double* B, double* C, double alpha, double beta, int lda, int ldb, int ldc)
 {
     /* TODO */
+    struct timespec start, end;
     double *A_, *B_, *C_;
-    RecursionZmortonPackingPre(m, n, k, A, B, C, &A_, &B_, &C_, beta);
-    RecursionZmortonPackingPro(m, n, k, A_, B_, C_, alpha, k, n, n);
-    RecursionZmortonPackingPost(m, n, C, C_);
+    func_pres[func_no](m, n, k, A, B, C, &A_, &B_, &C_, beta);
+    double t = MEASURE_VOID(func_pros[func_no], m, n, k, A_, B_, C_, alpha, k, n, n);
+    func_posts[func_no](m, n, C, C_);
     delete[] A_;
     delete[] B_;
     delete[] C_;
+    return t;
 }
 
 void naive_gemm(int m, int n, int k, const double* A, const double* B, double* C, double alpha, double beta, int lda, int ldb, int ldc)
@@ -86,11 +134,10 @@ void mm_test(int m, int n, int k)
     /* test performance */
 
     const int TRIAL = 5;
-    struct timespec start, end;
     double t_min = __DBL_MAX__;
 
     for (int i = 0; i < TRIAL; i++) {
-        double t = MEASURE_VOID(student_gemm, m, n, k, A, B, C, alpha, beta, lda, ldb, ldc);
+        double t = student_gemm(m, n, k, A, B, C, alpha, beta, lda, ldb, ldc);
 
         t_min = MIN(t, t_min);
     }
@@ -125,17 +172,19 @@ void mm_test(int m, int n, int k)
 
 int main(int argc, const char* argv[])
 {
-    if (argc != 4)
+    if (argc != 4 && argc != 5 && argc != 6)
     {
-        printf("Test usage: ./test m n k\n");
+        printf("Test usage: ./test m n k [func_no] [block_size]\n");
         exit(-1);
     }
 
     int m = atoi(argv[1]);
     int n = atoi(argv[2]);
     int k = atoi(argv[3]);
+    BLOCK_SIZE = argc == 6 ? atoi(argv[5]) : 1;
+    func_no = argc == 5 ? atoi(argv[4]) : 0;
 
-    printf("input: %d x %d x %d\n", m, n, k);
+    printf("input: %d x %d x %d\nmethod: %s\nblock size:%d\n", m, n, k, func_names[func_no], BLOCK_SIZE);
     fflush(stdout);
 
     if (!isPowerOf2(m) || !isPowerOf2(n) || !isPowerOf2(k)) {
