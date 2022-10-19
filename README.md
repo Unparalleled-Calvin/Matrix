@@ -8,9 +8,9 @@ Dependencies:
 - Python 3.6+
 - Pandas
 
-Specify lower bound and upper bound of the matrix size (logarithm to the base 2, 8 and 8 by default) in `test.py`.
+Specify lower bound and upper bound of the matrix size (logarithm to the base 2, both are 8 by default) in `test.py`.
 
-You can get csv type file (by default) or table like text file in `result.txt` (by deafult).
+You can get csv type file or table like text file in `result.txt` (by deafult).
 
 ```shell
 # for foreground process 
@@ -19,7 +19,7 @@ python3 test.py
 nohup python3 test.py 1>log.txt 2>&1 </dev/null &
 ```
 
-### Compilation
+#### Compilation
 
 `test.py` calls a subprocess to compile source files.
 
