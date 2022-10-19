@@ -17,7 +17,7 @@ def run(m = 256, n = 256, k = 256, block_size = 64, file_name = "./result.txt", 
     subprocess.call(f"make test toolset={toolset}", shell=True)
     subprocess.call(f"rm -f {file_name}", shell=True)
 
-    for func_no in range(len(func_names)):
+    for func_no in [0, 1, 2, 4, 5, 7]: # remove naive func
         subprocess.call(f"./test {m} {n} {k} {func_no} {block_size} >> {file_name}", shell=True)
 
 def parse(file_name = "result.txt"):
@@ -32,7 +32,7 @@ def parse(file_name = "result.txt"):
             funcs.append(func_name)
     return times, funcs
 
-def test(lb = 8, ub = 8, file_name = "result.txt", save = True, save_type = "csv",  toolset = "g++"):
+def test(lb = 8, ub = 8, file_name = "result.txt", save = True, save_type = "table",  toolset = "g++"):
     print(f"{1 << lb} <= matrix size <= {1 << ub}")
     if save:
         print(f"{save_type} type results will be saved in {file_name}")
@@ -58,4 +58,4 @@ def test(lb = 8, ub = 8, file_name = "result.txt", save = True, save_type = "csv
     return result
 
 if __name__ == "__main__":
-    test(save_type="table")
+    test(8, 8)
