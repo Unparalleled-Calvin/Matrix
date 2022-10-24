@@ -149,13 +149,14 @@ void LoopRowMajorBlockingPre(FUNC_PARAM_PRE) {
 #define pos(mat, ih, il, jh, jl, ld) (mat)[((ih) + (il)) * (ld) + (jh) + (jl)]
 
 void LoopRowMajorBlockingPro(FUNC_PARAM_PRO) { // 三重循环 + 显式分块
-	for (int ih = 0;ih < M;ih += BLOCK_SIZE) {
+	int step1 = lda * BLOCK_SIZE, step2 = ldb * BLOCK_SIZE, step3 = ldc * BLOCK_SIZE;
+	for (int ih = 0, ih_ldc = 0, ih_lda = 0;ih < M;ih += BLOCK_SIZE, ih_lda += step1, ih_ldc += step3) {
 		for (int jh = 0;jh < N;jh += BLOCK_SIZE) {
-			for (int kh = 0;kh < K;kh += BLOCK_SIZE) {
-				for (int il = 0;il < BLOCK_SIZE && ih + il < M;il++) {
-					for (int jl = 0;jl < BLOCK_SIZE && jh + jl < N;jl++) {
-						for (int kl = 0;kl < BLOCK_SIZE && kh + kl < K;kl++) {
-							pos(C, ih, il, jh, jl, ldc) += alpha * pos(A, ih, il, kh, kl, lda) * pos(B, kh, kl, jh, jl, ldb);
+			for (int kh = 0, kh_ldb = 0;kh < K;kh += BLOCK_SIZE, kh_ldb += step2) {
+				for (int il = 0, il_ldc = 0, il_lda = 0;il < BLOCK_SIZE;il++, il_lda += lda, il_ldc += ldc) {
+					for (int jl = 0;jl < BLOCK_SIZE;jl++) {
+						for (int kl = 0, kl_ldb = 0;kl < BLOCK_SIZE;kl++, kl_ldb += ldb) {
+							C[ih_ldc + il_ldc + jh + jl] += alpha * A[ih_lda + il_lda + kh + kl] * B[kh_ldb + kl_ldb + jh + jl];
 						}
 					}
 				}
@@ -189,13 +190,14 @@ void LoopRowMajorPackingPre(FUNC_PARAM_PRE) {
 #define pos(mat, ih, il, jh, jl, ld) (mat)[(ih) * (ld) + (jh) * (BLOCK_SIZE) + (il) * (BLOCK_SIZE) + (jl)]
 
 void LoopRowMajorPackingPro(FUNC_PARAM_PRO) { // 三重循环 + 显式分块 + 小块连续
-	for (int ih = 0;ih < M;ih += BLOCK_SIZE) {
-		for (int jh = 0;jh < N;jh += BLOCK_SIZE) {
-			for (int kh = 0;kh < K;kh += BLOCK_SIZE) {
-				for (int il = 0;il < BLOCK_SIZE && ih + il < M;il++) {
-					for (int jl = 0;jl < BLOCK_SIZE && jh + jl < N;jl++) {
-						for (int kl = 0;kl < BLOCK_SIZE && kh + kl < K;kl++) {
-							pos(C, ih, il, jh, jl, ldc) += alpha * pos(A, ih, il, kh, kl, lda) * pos(B, kh, kl, jh, jl, ldb);
+	int step1 = BLOCK_SIZE * lda, step2 = BLOCK_SIZE * ldb, step3 = BLOCK_SIZE * ldc, step4 = BLOCK_SIZE * BLOCK_SIZE;
+	for (int ih = 0, ih_ldc = 0, ih_lda = 0;ih < M;ih += BLOCK_SIZE, ih_ldc += step3, ih_lda += step1) {
+		for (int jh = 0, jh_block_size = 0;jh < N;jh += BLOCK_SIZE, jh_block_size+=step4) {
+			for (int kh = 0, kh_ldb = 0, kh_block_size = 0;kh < K;kh += BLOCK_SIZE, kh_ldb += step2, kh_block_size += step4) {
+				for (int il = 0, il_block_size = 0;il < BLOCK_SIZE;il++, il_block_size += BLOCK_SIZE) {
+					for (int jl = 0;jl < BLOCK_SIZE;jl++) {
+						for (int kl = 0, kl_block_size = 0;kl < BLOCK_SIZE;kl++, kl_block_size += BLOCK_SIZE) {
+							C[ih_ldc + jh_block_size + il_block_size + jl] += alpha * A[ih_lda + kh_block_size + il_block_size + kl] * B[kh_ldb + jh_block_size + kl_block_size + jl];
 						}
 					}
 				}
